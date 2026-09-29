@@ -93,7 +93,9 @@ Scores in %, mean ± sample standard deviation over seeds 0, 1 and 2, last-epoch
 for classification; COCO mAP (AP@[.50:.95]) and AP50 for detection. The seeds differ by a few tenths of a
 point, so smaller differences are noise. Δm is computed per seed against the reference, the mean of the three
 ViT-B/16 + LoRA runs (test 93.99 / 25.41, val 93.31 / 26.13; the Codabench leaderboard uses the same values), then
-averaged, so the reference configuration shows 0.
+averaged, so the reference configuration shows 0. Full fine-tuning and training from scratch train 106 M
+parameters with the heads, over the 40 M trainable budget of the assignment: they are references, full fine-tuning
+the upper bound.
 
 Test (2,065 images):
 

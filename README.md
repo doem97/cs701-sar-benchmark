@@ -45,9 +45,10 @@ image (9 classes) and **detect** its objects.
 - Each image: one class label, 1 or more boxes, all of that class.
 - 9 classes: aircraft, airport, bridge, car, harbor, oil tank, playground, ship, wind turbine.
 - Data, formats, release dates: [dataset card](https://huggingface.co/datasets/doem1997/cs701-sar-course-data).
-  Rules: [Codabench](https://www.codabench.org/competitions/18270).
-- Limits: one model, at most 130 M parameters in total (frozen ones count; this code: 106-107 M), each image in once
-  at ≤ 512 × 512 px; no ensembles, no test-time augmentation. Your report states parameters (total, trainable) and
+  Rules: [Codabench](https://www.codabench.org/competitions/18271).
+- Limits: one model; at most 130 M parameters in total (frozen ones count; this code: 106-107 M) and at most 40 M
+  trainable (heads included: LoRA 21.0 M; full fine-tuning and from scratch, 106 M, are over); each image in once at
+  ≤ 512 × 512 px; no ensembles, no test-time augmentation. Your report states parameters (total, trainable) and
   compute; full list on Codabench (Terms).
 
 ### 1.3 Metric
@@ -56,7 +57,8 @@ image (9 classes) and **detect** its objects.
 - Ranking: **Δm**, mean relative change of macro-F1 and mAP vs a reference model (ViT + LoRA, the example command
   in 2.2; mean of 3 seeds):
   `Δm = 100% × ½ [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref]`
-- Δm = 0: as good as the reference. Δm > 0: better. ViT full fine-tuning: about +13.
+- Δm = 0: as good as the reference. Δm > 0: better. ViT full fine-tuning: about +13 (over the trainable budget: an
+  upper bound).
 
 ### 1.4 Small Objects
 
@@ -82,6 +84,7 @@ bash run_all.sh                                                  # all eight run
 
 - Options: `--backbone vit|terramind`, `--init pretrained|scratch`, `--adapt full|lora|moelora`
   (`python train.py -h`).
+- `--adapt full` and `--init scratch` train 106 M parameters: over the 40 M budget, for reference only.
 - Pretrained weights download from Hugging Face on first use (ViT 0.4 GB, TerraMind 1.5 GB).
 - Times for one RTX PRO 6000 Blackwell GPU. Memory: [docs/DETAILS.md](docs/DETAILS.md#time-and-memory).
 
@@ -102,7 +105,8 @@ original image pixels, writes `submission.zip` for Codabench.
 ## 3. Baseline Results (for reference)
 
 Test split, %, mean ± std over 3 seeds. Δm reference: ViT + LoRA, mean of its 3 seeds (93.99 / 25.41), so its Δm
-is 0.
+is 0. Full fine-tuning and from scratch train 106 M parameters with the heads: over the 40 M budget, shown for
+reference (full fine-tuning: the upper bound).
 
 | backbone | adaptation | trained backbone params | macro-F1 | mAP | Δm |
 |---|---|---:|---:|---:|---:|
@@ -156,5 +160,5 @@ More: [docs/DETAILS.md](docs/DETAILS.md).
 ## 5. Links
 
 - Data: https://huggingface.co/datasets/doem1997/cs701-sar-course-data
-- Leaderboard: https://www.codabench.org/competitions/18270
+- Leaderboard: https://www.codabench.org/competitions/18271
 - Questions: TA Zichen, zichen.tian.2023@phdcs.smu.edu.sg
