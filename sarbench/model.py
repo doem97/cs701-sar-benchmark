@@ -11,7 +11,7 @@ from torchvision.models.detection.roi_heads import RoIHeads
 from torchvision.models.detection.rpn import RegionProposalNetwork, RPNHead
 from torchvision.ops import MultiScaleRoIAlign
 
-from adapters import set_task
+from .adapters import set_task
 
 
 class SimpleFeaturePyramid(nn.Module):

@@ -1,15 +1,15 @@
-"""model.py on real images: outputs and losses, fp32 detection heads under bf16 autocast, one backbone pass
+"""sarbench/model.py on real images: outputs and losses, fp32 detection heads under bf16 autocast, one backbone pass
 per task with MoE-LoRA, and an overfit check (a pretrained ViT fits 16 training images)."""
 from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 
-from adapters import MoELoRA, add_adapters
-from backbones import build_backbone
-from data import SARMultiTask, collate, to_original_xywh
-from metrics import detection_metrics
-from model import MultiTaskModel
+from sarbench.adapters import MoELoRA, add_adapters
+from sarbench.backbones import build_backbone
+from sarbench.data import SARMultiTask, collate, to_original_xywh
+from sarbench.metrics import detection_metrics
+from sarbench.model import MultiTaskModel
 
 ROOT = Path(__file__).resolve().parents[2] / 'dataset' / 'SARFact-Course-20K'
 

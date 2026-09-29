@@ -3,8 +3,8 @@ import pytest
 import torch
 from torch import nn
 
-from adapters import LoRA, MoELoRA, add_adapters, set_task
-from backbones import build_backbone
+from sarbench.adapters import LoRA, MoELoRA, add_adapters, set_task
+from sarbench.backbones import build_backbone
 
 # 12 blocks x rank 16 x ((768 + 2304) + (768 + 768)) for A and B of qkv and proj;
 # MoE-LoRA: the same A and B sizes (4 experts x rank 4 = 16), plus 12 blocks x 2 layers x 2 routers x 768 x 4 experts

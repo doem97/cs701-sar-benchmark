@@ -1,10 +1,10 @@
-"""metrics.py: a hand-computed classification example, and detection without predictions."""
+"""sarbench/metrics.py: a hand-computed classification example, and detection without predictions."""
 import json
 from pathlib import Path
 
 import pytest
 
-from metrics import classification_metrics, detection_metrics
+from sarbench.metrics import classification_metrics, detection_metrics
 
 ROOT = Path(__file__).resolve().parents[2] / 'dataset' / 'SARFact-Course-20K'
 

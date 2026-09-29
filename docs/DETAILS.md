@@ -50,7 +50,7 @@ Every run also trains the 20.1 M parameters of the heads (neck, RPN, RoI heads, 
   (0.2526, 0.2133), computed over the 9,392 train images at 512 px.
 - **Precision rule.** Backbone, neck and classification head run in bf16; the RPN and RoI heads run in fp32.
   torchvision's box coder casts anchors to the dtype of the regression output, and bf16 numbers between 256
-  and 512 are 2 px apart: too coarse for objects of 6-15 px. Importing terratorch (`backbones.py` does, for
+  and 512 are 2 px apart: too coarse for objects of 6-15 px. Importing terratorch (`sarbench/backbones.py` does, for
   every run) switches fp32 matrix multiplications on the GPU to TF32; box coordinates are decoded
   elementwise in fp32 and are unaffected.
 - **MoE-LoRA runs the backbone twice.** Its routers are task-specific, so the two tasks see different

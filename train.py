@@ -10,11 +10,11 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from adapters import add_adapters
-from backbones import build_backbone
-from data import SARMultiTask, collate, to_original_xywh
-from metrics import classification_metrics, detection_metrics
-from model import MultiTaskModel
+from sarbench.adapters import add_adapters
+from sarbench.backbones import build_backbone
+from sarbench.data import SARMultiTask, collate, to_original_xywh
+from sarbench.metrics import classification_metrics, detection_metrics
+from sarbench.model import MultiTaskModel
 
 
 def parse_args():

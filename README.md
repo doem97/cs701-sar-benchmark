@@ -17,7 +17,7 @@ image (9 classes) and **detect** its objects.
    - [2.2 Train Baseline](#22-train-baseline)
    - [2.3 Use Course Data](#23-use-course-data)
    - [2.4 Make Submission](#24-make-submission)
-3. [Baseline Results](#3-baseline-results)
+3. [Baseline Results (for reference)](#3-baseline-results-for-reference)
 4. [Code Structure](#4-code-structure)
 5. [Links](#5-links)
 
@@ -84,7 +84,7 @@ bash run_all.sh                                                  # all eight run
 ### 2.3 Use Course Data
 
 TA Zichen ran this code on fully labelled data in another folder layout. For the
-[course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data), adapt `data.py` and `train.py`:
+[course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data), adapt `sarbench/data.py` and `train.py`:
 
 - train on `train/labels.csv` + `train/instances.json`
 - hold out part of train for local validation (val and test have no labels)
@@ -95,7 +95,7 @@ TA Zichen ran this code on fully labelled data in another folder layout. For the
 `make_submission.py` has `write_submission` (the function in the briefing video): maps your boxes back to
 original image pixels, writes `submission.zip` for Codabench.
 
-## 3. Baseline Results
+## 3. Baseline Results (for reference)
 
 Test split, %, mean ± std over 3 seeds. Δm reference: seed-0 run of ViT full fine-tuning (95.43 / 31.67).
 
@@ -132,19 +132,21 @@ Accuracy and AP50: [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
 
 ## 4. Code Structure
 
-| file | role |
-|---|---|
-| `data.py` | images and boxes at 512 × 512, flips, normalization; boxes back to original pixels |
-| `backbones.py` | the two ViT-B/16 backbones: timm ViT (ImageNet-21k) and TerraMind-1.0-base |
-| `adapters.py` | LoRA and MoE-LoRA around the attention layers of a frozen backbone |
-| `model.py` | backbone + classification head + ViTDet feature pyramid + Faster R-CNN |
-| `metrics.py` | accuracy, macro-F1, balanced accuracy, confusion matrix; COCO box AP |
-| `train.py` | one experiment: train, validate, test, save |
-| `run_all.sh` | the eight reference runs |
-| `make_submission.py` | writes a Codabench submission zip from predictions |
-| `tests/` | checks of the data, metrics, backbones, adapters and model |
+```
+train.py              entry: train + evaluate one configuration
+run_all.sh            the eight reference runs (calls train.py)
+make_submission.py    write_submission(): predictions -> submission.zip
+sarbench/             the code behind train.py
+├── data.py           images + boxes at 512 × 512, flips; boxes back to original pixels
+├── backbones.py      ViT (ImageNet-21k), TerraMind-1.0-base
+├── adapters.py       LoRA, MoE-LoRA on a frozen backbone
+├── model.py          backbone + class head + ViTDet feature pyramid + Faster R-CNN
+└── metrics.py        accuracy, macro-F1, COCO box AP
+tests/                checks of sarbench/ (python -m pytest tests)
+docs/DETAILS.md       model, training protocol, design notes, time and memory
+```
 
-More (model, training protocol, design notes, time and memory, run outputs, tests): [docs/DETAILS.md](docs/DETAILS.md).
+More: [docs/DETAILS.md](docs/DETAILS.md).
 
 ## 5. Links
 

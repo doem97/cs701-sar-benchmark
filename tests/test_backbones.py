@@ -3,7 +3,7 @@ patch tokens; pretrained=True really loads the published weights."""
 import pytest
 import torch
 
-from backbones import build_backbone
+from sarbench.backbones import build_backbone
 
 FINAL_NORM = {'vit': 'vit.norm', 'terramind': 'terramind.encoder_norm'}
 

@@ -1,4 +1,4 @@
-"""data.py on the real dataset: split contents, the box geometry round trip, and flips."""
+"""sarbench/data.py on the real dataset: split contents, the box geometry round trip, and flips."""
 from pathlib import Path
 
 import pytest
@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import tv_tensors
 
-from data import MEAN, STD, SARMultiTask, collate, to_original_xywh
-from metrics import detection_metrics
+from sarbench.data import MEAN, STD, SARMultiTask, collate, to_original_xywh
+from sarbench.metrics import detection_metrics
 
 ROOT = Path(__file__).resolve().parents[2] / 'dataset' / 'SARFact-Course-20K'
 
