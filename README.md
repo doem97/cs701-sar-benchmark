@@ -1,20 +1,36 @@
-# CS701 SAR multi-task benchmark
+# CS701 SAR Multi-Task Benchmark
 
-Reference code for the CS701 team assignment: one ViT-B/16 backbone, trained jointly to **classify** a SAR
-image (9 classes) and **detect** its objects (Faster R-CNN).
+Reference code for the CS701 team assignment. One ViT-B/16 backbone, two tasks on SAR images: **classify** the
+image (9 classes) and **detect** its objects.
 
 ![One SAR image, one shared backbone, two heads: a class and the boxes](docs/task_pipeline.png)
 
-## SAR in 30 seconds
+## Contents
+
+1. [SAR Task Introduction](#1-sar-task-introduction)
+   - [1.1 SAR Basics](#11-sar-basics)
+   - [1.2 Task](#12-task)
+   - [1.3 Metric](#13-metric)
+   - [1.4 Small Objects](#14-small-objects)
+2. [Quick Start](#2-quick-start)
+   - [2.1 Install](#21-install)
+   - [2.2 Train Baseline](#22-train-baseline)
+   - [2.3 Use Course Data](#23-use-course-data)
+   - [2.4 Make Submission](#24-make-submission)
+3. [Baseline Results](#3-baseline-results)
+4. [Code Structure](#4-code-structure)
+5. [Links](#5-links)
+
+## 1. SAR Task Introduction
+
+### 1.1 SAR Basics
 
 ![A radar sends microwave pulses sideways, records the echoes, and combines them along its flight path into one long virtual antenna](docs/sar_explainer.gif)
 
-- **Active radar.** A satellite or aircraft sends microwave pulses and records the echoes, so it images by day,
-  by night and through clouds. It looks sideways, not straight down.
-- **Synthetic aperture.** Echoes of one target, collected along the flight path, are combined into one long
-  virtual antenna. That gives a fine resolution along the track.
-- **Pixel = echo strength.** No colour: our images are 8-bit grey. Metal and corners are bright, calm water
-  is dark, and coherent imaging adds a grainy pattern called speckle.
+- **Active radar**: satellite or aircraft sends microwave pulses, records echoes. Works day, night, through clouds.
+  Looks sideways.
+- **Synthetic aperture**: echoes along the flight path combined into one long virtual antenna, so fine resolution.
+- **Pixel = echo strength**: 8-bit grey, no colour. Metal and corners bright, calm water dark, grainy speckle.
 
 <details>
 <summary>What SAR images look like</summary>
@@ -23,46 +39,65 @@ image (9 classes) and **detect** its objects (Faster R-CNN).
 
 </details>
 
-## Task and metric
+### 1.2 Task
 
-- Each image has one class label and one or more boxes, all of that class. Predict both.
-- Classification is scored by macro-F1, detection by COCO mAP.
-- The leaderboard ranks by **Δm**, the mean relative change of macro-F1 and mAP against a reference model:
-  `Δm = 100% × ½ [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref]`. 0 = as good as the reference, > 0 = better.
-- Data, formats and rules: the [dataset card](https://huggingface.co/datasets/doem1997/cs701-sar-course-data).
+- Input: one SAR image. Output: its class + a box, class and score for each object.
+- Each image: one class label, 1 or more boxes, all of that class.
+- 9 classes: aircraft, airport, bridge, car, harbor, oil tank, playground, ship, wind turbine.
+- Data, formats, release dates: [dataset card](https://huggingface.co/datasets/doem1997/cs701-sar-course-data).
+  Rules: [Codabench](https://www.codabench.org/competitions/18248).
 
-Objects are small: half of all boxes are smaller than one 16 × 16 ViT patch (at 512 × 512 input).
+### 1.3 Metric
+
+- Classification: macro-F1. Detection: COCO mAP.
+- Ranking: **Δm**, mean relative change of macro-F1 and mAP vs a reference model (ViT, full fine-tuning):
+  `Δm = 100% × ½ [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref]`
+- Δm = 0: as good as the reference. Δm > 0: better.
+
+### 1.4 Small Objects
+
+Half of all boxes are smaller than one 16 × 16 ViT patch (at 512 × 512 input).
 
 ![A close-up with the 16 px patch grid: wind turbines of 6-10 px and the 15.9 px median box are smaller than one patch](docs/patch_grid.png)
 
-## Quick start
+## 2. Quick Start
+
+### 2.1 Install
 
 ```bash
 conda create -n cs701bench python=3.12 -y && conda activate cs701bench
-pip install -r requirements.txt          # CUDA 12.8 builds of torch 2.9.0 / torchvision 0.24.0
-
-python train.py --backbone vit --init pretrained --adapt lora   # one experiment, about 50 min
-bash run_all.sh                                                  # all eight, about 7 h
+pip install -r requirements.txt   # CUDA 12.8 builds of torch 2.9.0 / torchvision 0.24.0
 ```
 
-Options: `--backbone vit|terramind`, `--init pretrained|scratch`, `--adapt full|lora|moelora`; see
-`python train.py -h`. Pretrained weights download from Hugging Face on first use (ViT 0.4 GB, TerraMind 1.5 GB).
-Times are for one RTX PRO 6000 Blackwell GPU; memory needs are in [docs/DETAILS.md](docs/DETAILS.md#time-and-memory).
+### 2.2 Train Baseline
 
-## Using it with the course data
+```bash
+python train.py --backbone vit --init pretrained --adapt lora   # one run, about 50 min
+bash run_all.sh                                                  # all eight runs, about 7 h
+```
 
-The data is on [Hugging Face](https://huggingface.co/datasets/doem1997/cs701-sar-course-data); rules and
-leaderboard are on [Codabench](https://www.codabench.org/competitions/18248). TA Zichen ran this code on the fully
-labelled data in a different folder layout, so adapt `data.py` and `train.py`:
+- Options: `--backbone vit|terramind`, `--init pretrained|scratch`, `--adapt full|lora|moelora`
+  (`python train.py -h`).
+- Pretrained weights download from Hugging Face on first use (ViT 0.4 GB, TerraMind 1.5 GB).
+- Times for one RTX PRO 6000 Blackwell GPU. Memory: [docs/DETAILS.md](docs/DETAILS.md#time-and-memory).
 
-- train on `train/labels.csv` and `train/instances.json`;
-- hold out part of train for local validation (val and test come without labels);
-- predict on the images in `val/images.json` and `test/images.json`.
+### 2.3 Use Course Data
 
-`make_submission.py` has `write_submission`, the function shown in the briefing video: it maps your boxes
-back to original image pixels and writes the `submission.zip` for Codabench.
+TA Zichen ran this code on fully labelled data in another folder layout. For the
+[course data](https://huggingface.co/datasets/doem1997/cs701-sar-course-data), adapt `data.py` and `train.py`:
 
-## Results
+- train on `train/labels.csv` + `train/instances.json`
+- hold out part of train for local validation (val and test have no labels)
+- predict on the images in `val/images.json` and `test/images.json`
+
+### 2.4 Make Submission
+
+`make_submission.py` has `write_submission` (the function in the briefing video): maps your boxes back to
+original image pixels, writes `submission.zip` for Codabench.
+
+## 3. Baseline Results
+
+Test split, %, mean ± std over 3 seeds. Δm reference: seed-0 run of ViT full fine-tuning (95.43 / 31.67).
 
 | backbone | adaptation | trained backbone params | macro-F1 | mAP | Δm |
 |---|---|---:|---:|---:|---:|
@@ -75,12 +110,10 @@ back to original image pixels and writes the `submission.zip` for Codabench.
 | ViT, from scratch | full training | 86.0 M | 82.8 ± 0.7 | 17.0 ± 0.3 | −29.8 ± 0.8 |
 | TerraMind, from scratch | full training | 85.3 M | 86.1 ± 0.2 | 17.8 ± 0.5 | −26.9 ± 0.7 |
 
-Test split, %, mean ± std over 3 seeds. The Δm reference is the seed-0 run of ViT full fine-tuning (95.43 / 31.67).
-
 <details>
 <summary>Val results</summary>
 
-Val split, %, mean ± std over 3 seeds; Δm against the seed-0 reference run on val (94.47 / 31.57).
+Val split, %, mean ± std over 3 seeds. Δm reference: the same run on val (94.47 / 31.57).
 
 | backbone | adaptation | trained backbone params | macro-F1 | mAP | Δm |
 |---|---|---:|---:|---:|---:|
@@ -93,12 +126,11 @@ Val split, %, mean ± std over 3 seeds; Δm against the seed-0 reference run on 
 | ViT, from scratch | full training | 86.0 M | 83.5 ± 0.9 | 18.2 ± 0.5 | −26.9 ± 1.1 |
 | TerraMind, from scratch | full training | 85.3 M | 86.0 ± 0.9 | 19.2 ± 0.4 | −24.2 ± 1.0 |
 
-Accuracy and AP50 are in [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
-
 </details>
 
-<details>
-<summary>Files</summary>
+Accuracy and AP50: [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
+
+## 4. Code Structure
 
 | file | role |
 |---|---|
@@ -112,13 +144,10 @@ Accuracy and AP50 are in [docs/DETAILS.md](docs/DETAILS.md#results-in-full).
 | `make_submission.py` | writes a Codabench submission zip from predictions |
 | `tests/` | checks of the data, metrics, backbones, adapters and model |
 
-</details>
+More (model, training protocol, design notes, time and memory, run outputs, tests): [docs/DETAILS.md](docs/DETAILS.md).
 
-More in [docs/DETAILS.md](docs/DETAILS.md): the model, training protocol, design notes, time and memory,
-what a run writes, and the checks.
+## 5. Links
 
-## Links
-
-- Dataset card: https://huggingface.co/datasets/doem1997/cs701-sar-course-data
+- Data: https://huggingface.co/datasets/doem1997/cs701-sar-course-data
 - Leaderboard: https://www.codabench.org/competitions/18248
-- Questions: zichen.tian.2023@phdcs.smu.edu.sg
+- Questions: TA Zichen, zichen.tian.2023@phdcs.smu.edu.sg
