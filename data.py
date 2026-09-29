@@ -1,4 +1,4 @@
-"""The course data in the staff folder layout (see README): every image has one class label and >= 1 box.
+"""The course data in TA Zichen's folder layout (see README): every image has one class label and >= 1 box.
 Loads images and boxes at a fixed input size and maps predicted boxes back to original pixels."""
 import csv
 import json

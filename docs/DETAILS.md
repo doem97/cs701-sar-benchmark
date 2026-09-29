@@ -84,7 +84,7 @@ bash run_all.sh --limit 64 --epochs 1 --out runs/smoke   # all eight configurati
 python -m pytest tests                                   # the tests (need a GPU)
 ```
 
-`test_data.py`, `test_metrics.py` and `test_model.py` read the data in the staff layout (see the README),
+`test_data.py`, `test_metrics.py` and `test_model.py` read the data in TA Zichen's layout (see the README),
 so they need the same adaptation as the code; `test_backbones.py` and `test_adapters.py` need no data.
 
 ## Results in full

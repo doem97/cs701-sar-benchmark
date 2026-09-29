@@ -51,8 +51,9 @@ Times are for one RTX PRO 6000 Blackwell GPU; memory needs are in [docs/DETAILS.
 
 ## Using it with the course data
 
-The staff ran this code on the fully labelled data in a different folder layout, so adapt `data.py` and
-`train.py`:
+The data is on [Hugging Face](https://huggingface.co/datasets/doem1997/cs701-sar-course-data); rules and
+leaderboard are on [Codabench](https://www.codabench.org/competitions/18248). TA Zichen ran this code on the fully
+labelled data in a different folder layout, so adapt `data.py` and `train.py`:
 
 - train on `train/labels.csv` and `train/instances.json`;
 - hold out part of train for local validation (val and test come without labels);
