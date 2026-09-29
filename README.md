@@ -45,14 +45,18 @@ image (9 classes) and **detect** its objects.
 - Each image: one class label, 1 or more boxes, all of that class.
 - 9 classes: aircraft, airport, bridge, car, harbor, oil tank, playground, ship, wind turbine.
 - Data, formats, release dates: [dataset card](https://huggingface.co/datasets/doem1997/cs701-sar-course-data).
-  Rules: [Codabench](https://www.codabench.org/competitions/18248).
+  Rules: [Codabench](https://www.codabench.org/competitions/18270).
+- Limits: one model, at most 130 M parameters in total (frozen ones count; this code: 106-107 M), each image in once
+  at ≤ 512 × 512 px; no ensembles, no test-time augmentation. Your report states parameters (total, trainable) and
+  compute; full list on Codabench (Terms).
 
 ### 1.3 Metric
 
 - Classification: macro-F1. Detection: COCO mAP.
-- Ranking: **Δm**, mean relative change of macro-F1 and mAP vs a reference model (ViT, full fine-tuning):
+- Ranking: **Δm**, mean relative change of macro-F1 and mAP vs a reference model (ViT + LoRA, the example command
+  in 2.2; mean of 3 seeds):
   `Δm = 100% × ½ [(F1 − F1_ref) / F1_ref + (mAP − mAP_ref) / mAP_ref]`
-- Δm = 0: as good as the reference. Δm > 0: better.
+- Δm = 0: as good as the reference. Δm > 0: better. ViT full fine-tuning: about +13.
 
 ### 1.4 Small Objects
 
@@ -72,7 +76,7 @@ pip install -r requirements.txt   # CUDA 12.8 builds of torch 2.9.0 / torchvisio
 ### 2.2 Train Baseline
 
 ```bash
-python train.py --backbone vit --init pretrained --adapt lora   # one run, about 50 min
+python train.py --backbone vit --init pretrained --adapt lora   # the Δm reference; one run, about 50 min
 bash run_all.sh                                                  # all eight runs, about 7 h
 ```
 
@@ -97,34 +101,35 @@ original image pixels, writes `submission.zip` for Codabench.
 
 ## 3. Baseline Results (for reference)
 
-Test split, %, mean ± std over 3 seeds. Δm reference: seed-0 run of ViT full fine-tuning (95.43 / 31.67).
+Test split, %, mean ± std over 3 seeds. Δm reference: ViT + LoRA, mean of its 3 seeds (93.99 / 25.41), so its Δm
+is 0.
 
 | backbone | adaptation | trained backbone params | macro-F1 | mAP | Δm |
 |---|---|---:|---:|---:|---:|
-| ViT (ImageNet-21k) | full fine-tuning | 86.0 M | 95.8 ± 0.3 | 31.8 ± 0.2 | +0.3 ± 0.4 |
-| ViT (ImageNet-21k) | LoRA | 0.88 M | 94.0 ± 0.2 | 25.4 ± 0.5 | −10.6 ± 0.7 |
-| ViT (ImageNet-21k) | MoE-LoRA | 1.03 M | 93.4 ± 0.5 | 26.8 ± 0.3 | −8.7 ± 0.7 |
-| TerraMind (Earth observation) | full fine-tuning | 85.3 M | 95.6 ± 0.2 | 30.8 ± 0.4 | −1.3 ± 0.6 |
-| TerraMind (Earth observation) | LoRA | 0.88 M | 92.6 ± 0.4 | 26.5 ± 0.4 | −9.7 ± 0.9 |
-| TerraMind (Earth observation) | MoE-LoRA | 1.03 M | 92.4 ± 0.1 | 27.8 ± 0.3 | −7.7 ± 0.5 |
-| ViT, from scratch | full training | 86.0 M | 82.8 ± 0.7 | 17.0 ± 0.3 | −29.8 ± 0.8 |
-| TerraMind, from scratch | full training | 85.3 M | 86.1 ± 0.2 | 17.8 ± 0.5 | −26.9 ± 0.7 |
+| ViT (ImageNet-21k) | full fine-tuning | 86.0 M | 95.8 ± 0.3 | 31.8 ± 0.2 | +13.5 ± 0.4 |
+| ViT (ImageNet-21k) | LoRA | 0.88 M | 94.0 ± 0.2 | 25.4 ± 0.5 | 0.0 ± 0.9 |
+| ViT (ImageNet-21k) | MoE-LoRA | 1.03 M | 93.4 ± 0.5 | 26.8 ± 0.3 | +2.5 ± 0.8 |
+| TerraMind (Earth observation) | full fine-tuning | 85.3 M | 95.6 ± 0.2 | 30.8 ± 0.4 | +11.5 ± 0.7 |
+| TerraMind (Earth observation) | LoRA | 0.88 M | 92.6 ± 0.4 | 26.5 ± 0.4 | +1.4 ± 1.0 |
+| TerraMind (Earth observation) | MoE-LoRA | 1.03 M | 92.4 ± 0.1 | 27.8 ± 0.3 | +3.8 ± 0.7 |
+| ViT, from scratch | full training | 86.0 M | 82.8 ± 0.7 | 17.0 ± 0.3 | −22.5 ± 0.9 |
+| TerraMind, from scratch | full training | 85.3 M | 86.1 ± 0.2 | 17.8 ± 0.5 | −19.3 ± 0.8 |
 
 <details>
 <summary>Val results</summary>
 
-Val split, %, mean ± std over 3 seeds. Δm reference: the same run on val (94.47 / 31.57).
+Val split, %, mean ± std over 3 seeds. Δm reference: the same configuration on val (93.31 / 26.13).
 
 | backbone | adaptation | trained backbone params | macro-F1 | mAP | Δm |
 |---|---|---:|---:|---:|---:|
-| ViT (ImageNet-21k) | full fine-tuning | 86.0 M | 94.4 ± 0.3 | 32.0 ± 0.4 | +0.6 ± 0.6 |
-| ViT (ImageNet-21k) | LoRA | 0.88 M | 93.3 ± 0.4 | 26.1 ± 0.4 | −9.2 ± 0.8 |
-| ViT (ImageNet-21k) | MoE-LoRA | 1.03 M | 92.2 ± 0.8 | 27.1 ± 0.2 | −8.2 ± 0.8 |
-| TerraMind (Earth observation) | full fine-tuning | 85.3 M | 94.2 ± 0.3 | 31.5 ± 0.1 | −0.3 ± 0.2 |
-| TerraMind (Earth observation) | LoRA | 0.88 M | 92.2 ± 0.4 | 27.0 ± 0.5 | −8.5 ± 1.1 |
-| TerraMind (Earth observation) | MoE-LoRA | 1.03 M | 91.9 ± 0.4 | 28.8 ± 0.1 | −5.7 ± 0.3 |
-| ViT, from scratch | full training | 86.0 M | 83.5 ± 0.9 | 18.2 ± 0.5 | −26.9 ± 1.1 |
-| TerraMind, from scratch | full training | 85.3 M | 86.0 ± 0.9 | 19.2 ± 0.4 | −24.2 ± 1.0 |
+| ViT (ImageNet-21k) | full fine-tuning | 86.0 M | 94.4 ± 0.3 | 32.0 ± 0.4 | +11.8 ± 0.7 |
+| ViT (ImageNet-21k) | LoRA | 0.88 M | 93.3 ± 0.4 | 26.1 ± 0.4 | 0.0 ± 0.9 |
+| ViT (ImageNet-21k) | MoE-LoRA | 1.03 M | 92.2 ± 0.8 | 27.1 ± 0.2 | +1.3 ± 0.9 |
+| TerraMind (Earth observation) | full fine-tuning | 85.3 M | 94.2 ± 0.3 | 31.5 ± 0.1 | +10.7 ± 0.3 |
+| TerraMind (Earth observation) | LoRA | 0.88 M | 92.2 ± 0.4 | 27.0 ± 0.5 | +1.0 ± 1.3 |
+| TerraMind (Earth observation) | MoE-LoRA | 1.03 M | 91.9 ± 0.4 | 28.8 ± 0.1 | +4.4 ± 0.3 |
+| ViT, from scratch | full training | 86.0 M | 83.5 ± 0.9 | 18.2 ± 0.5 | −20.3 ± 1.3 |
+| TerraMind, from scratch | full training | 85.3 M | 86.0 ± 0.9 | 19.2 ± 0.4 | −17.3 ± 1.2 |
 
 </details>
 
@@ -151,5 +156,5 @@ More: [docs/DETAILS.md](docs/DETAILS.md).
 ## 5. Links
 
 - Data: https://huggingface.co/datasets/doem1997/cs701-sar-course-data
-- Leaderboard: https://www.codabench.org/competitions/18248
+- Leaderboard: https://www.codabench.org/competitions/18270
 - Questions: TA Zichen, zichen.tian.2023@phdcs.smu.edu.sg
